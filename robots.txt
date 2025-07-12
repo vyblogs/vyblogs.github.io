@@ -1,5 +1,4 @@
 User-agent: *
-Disallow: /assets/ResearchCV.pdf
 Disallow: /*.log
 Disallow: /admin/
 Disallow: /private/
@@ -8,15 +7,4 @@ Disallow: /.git/
 Disallow: /node_modules/
 Crawl-delay: 1
 
-User-agent: Googlebot
-Allow: /
-Allow: /assets/ResearchCV.pdf
-
-User-agent: Bingbot
-Allow: /
-Allow: /assets/ResearchCV.pdf
-
-User-agent: Slurp
-Allow: /
-
-Sitemap: https://varun221.github.io/sitemap.xml
+Sitemap: https://vyblogs.github.io/sitemap.xml
