@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <!-- Google tag (gtag.js) -->
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <meta name="description" content="" />
+    <meta name="author" content="" />
+    <title>Varun</title>
+    <!-- Favicon-->
+    <link rel="icon" type="image/x-icon" href="../assets/favicon.ico" />
+    <!-- Core theme CSS (includes Bootstrap)-->
+    <link href="../css/simplestyles.css" rel="stylesheet" />
+    <link rel="stylesheet" href="../fontawesome-free-6.1.1-web/css/all.css">
+    <link rel="stylesheet" href="../academicons-1.9.2/css/academicons.min.css">
+
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@700&display=swap" rel="stylesheet">
+
+    <link rel="apple-touch-icon" sizes="180x180" href="../favicons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="../favicons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../favicons/favicon-16x16.png">
+    <link rel="manifest" href="../favicons/site.webmanifest">
+
+    <script id="MathJax-script" defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+    </script>
+
+</head>
+
+<body>
+
+    <header class="site-header">
+
+        <div class="wrapper">
+
+            <a class="site-title" href="/">Varun Blogs</a>
+
+            <nav class="site-nav">
+                <a href="#" class="menu-icon"></a>
+                <div class="trigger">
+                    <a class="page-link" href="/about.html">About</a>
+                    <a onclick="toggleDarkMode()" class="page-link"> <i class="fa-solid fa-circle-half-stroke"
+                            id="dark-toggle" style="color: black;"></i> </a>
+                </div>
+            </nav>
+
+        </div>
+
+    </header>
+
+    <div class="container" style="padding-bottom: 0;">
+        <h1 class="blog-title">Gradients to Logit Projection Matrix : An Intuition</h1>
+        <p class="publication-authors">July 12, 2025</p>
+    </div>
+
+    <div class="container">
+
+        <p>Recently, I was reminded of something beautiful about how LLMs learn to project the final layer activations
+            into the logit vector. Just a calculation of the gradient allows you to appreciate how these models learn to
+            predict the next token.</p>
+
+
+        <p>Given a sequence of tokens as a prompt, $x_1, x_2 \ldots x_{t-1}$, an LLM tries to predict $x_t$.
+            Let's call its final layer activation as $\textbf{g} \in R^h$ .</p>
+        <p>Now, consider the Logit Projection Matrix $\textbf{W} \in R^{l \times h}$. We use it to project these
+            activations to a logit vector.</p>
+        <p>$\textbf{Q} = \textbf{W} \cdot \textbf{g} \;\;\;\; \in R^{l}$</p>
+        <p>Finally, we convert the logits into probabilities using the Softmax operation</p>
+        <p>$\textbf{P} = \text{SoftMax}(\textbf{Q})$</p>
+        <p>The LLM outputs a probability vector \textbf{P}, which tells us how confident it is to predict each of the
+            token in its vocabulary. In the most general learning setup we are given $x<em>t$ , the ground truth token
+                that follows $x</em>{t-1}$. This allows us to create a ground truth vector, \textbf{G}</p>
+        <p>$\textbf{G} = [0\;0\;\ldots \; 0 \; 0 \; 1 \; 0 \; 0 \; \ldots \; 0 \; 0]^T \in R^l$</p>
+        <p>This is just a one-hot vector with $1$ in $x_t^{th}$ position.</p>
+        <p>Given this ground truth we calculate the standard cross entropy loss,</p>
+        <p>$L = - \textbf{G} \cdot \log (\textbf{P})$</p>
+        <p>You can see that, we are essentially picking out the correct token and maximizing the log probability of the
+            same. Do you think other probabilities, hence, have no role to play? NO!</p>
+        <hr>
+        <p>Quick pitstop to summarize and clarify things</p>
+        <ul>
+            <li>$l$ denotes vocabulary size and $h$ denotes model dimension of the LLM</li>
+            <li>Bold variables are vectors/matrices whereas plain text ones are scalars</li>
+            <li>$A_{\text{some letter}}$ denotes the $(\text{some letter})^{th}$ element of a vector $\textbf{A}$</li>
+        </ul>
+        <p>Testing your understanding.</p>
+        <p>if $s = \sum\limits_{v=1}^l P<em>v$ and $t = \lim\limits</em>{k \rightarrow 0^+} \;[\;- \log\;(s \cdot k)\;
+            ]$</p>
+        <p>What are $s$ and $t$ ?</p>
+        <p>Hint: $t - s$ is the number of GPUs I want for myself :)</p>
+        <hr>
+        <p>When you learn the weights of your LLM, the logit projection matrix is being updated with this rule:</p>
+        <p>$\textbf{W} := \textbf{W} - \eta \dfrac{\partial L}{\partial \textbf{W}}$</p>
+        <p>This is core idea behind any optimizer that learns through gradient descent.</p>
+        <p>Let’s try to calculate the gradient for the update using chain rule,</p>
+        <p>$\dfrac{\partial L}{\partial \textbf{W}} = \dfrac{\partial L}{\partial \textbf{P}} \cdot \dfrac{\partial
+            \textbf{P}}{\partial \textbf{Q}} \cdot \dfrac{\partial \textbf{Q}}{\partial \textbf{W}}$</p>
+        <h3 id="preliminaries-for-gradient-calculation">Preliminaries for Gradient Calculation</h3>
+        <p>The mathematical definition of a gradient of a tensor wrt tensor is defined in terms of a Jacobian, which is
+            of shape [ Output elements x Input elements ]. It is a matrix containing the derivative of each element in
+            the output w.r.t each element in the input.</p>
+        <p>If you are working with an autograd engine like Jax or Pytorch, they generally reshape this Jacobian, or
+            rather, compute it such that it can be later added to the input (like in gradient descent). Hence in this
+            article, we will always ensure that the gradient is of same shape as output.</p>
+        <p>We’ll deal with each term separately.</p>
+        <h3 id="first-term">First Term</h3>
+        <p>$\dfrac{\partial L}{\partial \textbf{P}}$ is an $l$-sized vector with derivatives from each component of
+            $\textbf{P}$ . It is quite easy to compute if we write the expression for the loss in terms of components of
+            \textbf{P} and \textbf{G}.</p>
+        <p>$L = \sum\limits_{k=1}^{l} G_k \log P_k$</p>
+        <p>$=&gt; \dfrac{\partial L}{\partial P_k} = - \dfrac{G_k}{P_k}$</p>
+        <p>We can also write it in the vector form,</p>
+        <p>$\boxed { \dfrac{\partial L}{\partial \textbf{P}} = - \dfrac{\textbf{G}}{\textbf{P}} }$</p>
+        <h3 id="second-term">Second Term</h3>
+        <p>$\dfrac{\partial \textbf{P}}{\partial \textbf{Q}}$ is an $l \times l$ matrix. We would need to compute
+            $\dfrac{\partial P_k}{\partial Q_v}$ where both k and v vary from 1 to l. </p>
+        <p>Without any loss of generality, lets calculate $\dfrac{\partial P_k}{\partial \textbf{Q}}$, then we can
+            generalize to rest of the elements of $\textbf{P}$ vector.</p>
+        <p>We know that, $P_k = \dfrac{ \exp ( Q<em>k ) }{Z} \;\;\;\;\;\; \text{where } Z = \sum\limits</em>{v=1}^{l}
+            \exp ( Q_v )$</p>
+        <p>Let’s consider v^{th} component of \textbf{Q}. </p>
+        <p>For the $P_k$ expression, we can apply u/v quotient rule to obtain.</p>
+        <p>$\dfrac{\partial P_k}{\partial Q_v} = \dfrac{Z \cdot \dfrac{\partial \exp (Q_k)}{\partial Q_v} - \exp{(Q_k)}
+            \cdot \dfrac{\partial Z}{\partial Q_v}}{Z^2}$</p>
+        <p>The second term of the numerator is easy, it is just $\frac{\partial Z}{\partial Q_v} = \exp Q_v$</p>
+        <p>The first term will evaluate differently depending on whether v is equal to k.</p>
+        <p><strong>Case 1:</strong> $v = k$</p>
+        <p>$\dfrac{\partial P_k}{\partial Q_v} = \dfrac{Z \cdot \exp(Q_k) - \exp{(Q_k)} \cdot \exp{(Q_k)}}{Z^2}$</p>
+        <p>= $\dfrac{\exp (Q_k)}{Z} - {\dfrac{\exp (Q_k)^2}{Z^2}}$</p>
+        <p>$= P_k ( 1 - P_k)$</p>
+        <p><strong>Case 2:</strong> $v \neq k$</p>
+        <p>$\dfrac{\partial P_k}{\partial Q_v} = \dfrac{Z \cdot 0 - \exp{(Q_k)} \cdot \exp{(Q_v)}}{Z^2}$</p>
+        <p>$= \dfrac{\exp (Q_k)}{Z} \cdot {\dfrac{\exp (Q_v)}{Z}}$</p>
+        <p>$= P_k P_v$</p>
+        <p>Neat right? You can write this in a compact form </p>
+        <p>$\boxed { \dfrac{\partial P_k}{\partial Q_v} = P<em>k ( \delta</em>{kv} - P_v) }$</p>
+        <p>Where $\delta_{kv}$ is 1 for $k = v$ and $0$ otherwise.</p>
+        <h3 id="combining-the-first-and-second-terms">Combining the first and second terms</h3>
+        <p>You might wonder how autograd engine would deal with an l x l matrix gradient for an l - sized vector. During
+            backpropagation, frameworks only care about the gradients w.r.t the final loss L . Let’s compute the final
+            gradient for Q.</p>
+        <p>$\dfrac{\partial L}{\partial \textbf{Q}} = \dfrac{\partial L}{\partial \textbf{P}} \cdot \dfrac{\partial
+            \textbf{P}}{\partial \textbf{Q}}$ </p>
+        <p>Again, it is simpler to deal with things one component at a time,</p>
+        <p>$\dfrac{\partial L}{\partial Q_v} = \dfrac{\partial L}{\partial P_k} \cdot \dfrac{\partial P_k}{\partial
+            Q_v}$ </p>
+        <p>This is essentially the dot-product between the probability vector and $k^{th}$ column of the $\frac{\partial
+            \textbf{P}}{\partial \textbf{Q}}$ matrix</p>
+        <p>$= \sum\limits_{k=1}^{l} \left(-\frac{G_k}{P_k}\right) \cdot \left(P<em>k \cdot (\delta</em>{kv} -
+            P<em>v)\right) \$
+                $= \sum\limits</em>{k=1}^{l} G_k \cdot P<em>v - \sum\limits</em>{k=1}^{l} G<em>k \cdot \delta</em>{kv}$
+        </p>
+        <p>$= P_v \cdot 1 - G<em>v \cdot 1 \;\;\;\;\;\; \text{as} \;\sum\limits</em>{k=1}^{l} G_k = 1$ </p>
+        <p>= $(P - G)_v$</p>
+        <p>In vector form, $\boxed { \dfrac{\partial L}{\partial Q} = P - G } \; \in R^l$ </p>
+        <h3 id="final-gradient">Final Gradient</h3>
+        <p>The third term is the simplest to calculate.</p>
+        <p>$Q<em>v = \sum\limits</em>{s=1}^{h} W_{vs}g_s$</p>
+        <p>⇒ $\boxed { \dfrac{\partial \textbf{Q}}{\partial \textbf{W}} = \textbf{g} }$</p>
+        <p>The final gradient, \dfrac{\partial L}{\partial W_{vs}} should be of shape l \times h . Looking at its
+            components,</p>
+        <p>$\dfrac{\partial L}{\partial W_{vs}} = \dfrac{\partial L}{\partial Q_v} \cdot \dfrac{\partial
+            Q<em>v}{\partial W</em>{vs}}$</p>
+        <p>⇒ $\dfrac{\partial L}{\partial W_{vs}} = (P - G)_v \cdot g_s$</p>
+        <p>Since, v varies from 1 to l and s varies from 1 to h, you can notice that each component of \textbf{P} -
+            \textbf{G} is multiplied with each component of \textbf{g} to result in a l \times h matrix.</p>
+        <p>$\boxed { \dfrac{\partial L}{\partial \textbf{W}} = (\textbf{P} - \textbf{G}) \otimes \textbf{g} }$</p>
+        <p>The gradient $\dfrac{\partial L}{\partial \textbf{W}} \in R_{l \times h}$ will thus simply be an outer
+            product of the </p>
+        <p>(1) final layer activation, \textbf{g}</p>
+        <p>(2) the probability vector of the tokens, with the probability of the correct token subtracted by 1.</p>
+        <p>Looks too simple, right? The following code snippet verifies this theoretical calculation.</p>
+        <pre><code class="lang-python"><span class="hljs-built_in">import</span> jax
+<span class="hljs-built_in">import</span> jax.numpy as jnp
+
+<span class="hljs-attr">key</span> = jax.random.PRNGKey(<span class="hljs-number">2</span>)
+<span class="hljs-attr">V</span> = <span class="hljs-number">32</span>
+<span class="hljs-attr">h</span> = <span class="hljs-number">4</span>
+<span class="hljs-attr">corr_token_idx</span> = <span class="hljs-number">15</span>
+
+<span class="hljs-attr">W</span> = jax.random.normal(key, (V, h))
+<span class="hljs-attr">g</span> = jax.random.normal(key, (h,))
+<span class="hljs-attr">gt</span> = jax.nn.one_hot(corr_token_idx, V).reshape(V, <span class="hljs-number">1</span>) 
+
+def calc_loss(W, g):
+  <span class="hljs-attr">logits</span> = W @ g
+  <span class="hljs-attr">probs</span> = jax.nn.softmax(logits).reshape(-<span class="hljs-number">1</span>, <span class="hljs-number">1</span>)
+  <span class="hljs-attr">loss</span> = -jnp.sum(gt * jnp.log(probs))
+  return loss, probs
+
+<span class="hljs-comment"># Use autograd to calculate gradient and get the probs as well.</span>
+grad_output, <span class="hljs-attr">probs</span> = jax.grad(calc_loss, <span class="hljs-attr">has_aux=True)(W,</span> g)
+
+<span class="hljs-comment"># Just subtract 1 from the correct token probability.</span>
+<span class="hljs-attr">P_minus_G</span> = probs.at[corr_token_idx].set(probs[corr_token_idx]-<span class="hljs-number">1</span>)
+
+<span class="hljs-attr">math_gradout</span> = jnp.outer(P_minus_G, g)
+
+<span class="hljs-keyword">assert</span> grad_output.<span class="hljs-attr">shape</span> == math_gradout.shape
+jnp.allclose(grad_output, math_gradout)
+
+&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;
+Array(True, <span class="hljs-attr">dtype=bool)</span>
+</code></pre>
+        <h3 id="understanding-the-gradient">Understanding the Gradient</h3>
+        <p>Consider the \textbf{W} \in R^{l \times h} as containing l vectors of h-dimension each, Lets call them W_v
+        </p>
+        <p>Recall the initial example where x_t is the token to be predicted given x_1, x<em>2 \ldots x</em>{t-1}</p>
+        <p>Since x<em>t is the ground truth token, subtract W</em>{x_t} with ( P(x<em>t | x</em>{&lt;t}) - 1 ) \times
+            g(x<em>{&lt;t}). In other words we increase W</em>{x_t} by ( 1 - P(x<em>t | x</em>{&lt;t}) ) \times
+            g(x_{&lt;t}). If the LLM does not give a high probability for the token x<em>t, we push W</em>{x<em>t} in
+                the direction of g(x</em>{&lt;t}), the input context&#39;s activation!</p>
+        <p>For other W<em>v, we subtract P(v | x</em>{&lt;t}) \times g(x_{&lt;t}). If the LLM gives a high probability
+            to the tokens other than ground truth, we reduce this direction from the corresponding W_v . </p>
+        <p>This ensures that, for the correct tokens, the logit projection embedding becomes more similar to activations
+            where it should appear, while for the incorrect ones, they become less similar to contexts where they
+            shouldn’t appear.</p>
+        <p>In summary, this gradient update encourages the model to align the output embedding W_{x<em>t} more closely
+                with the context representation g(x</em>{&lt;t}) when the token x_t is correct but not predicted with
+            high probability. Simultaneously, it pushes other embeddings W<em>v away from g(x</em>{&lt;t}) in proportion
+            to their incorrect probabilities. </p>
+        <p>This mechanism ensures that the logit prediction matrix becomes increasingly tuned to distinguish correct
+            tokens from incorrect ones and creates good associations between context and correct next tokens.</p>
+        <p>Cool right? Thank you for following along!</p>
+
+
+
+    </div>
+
+
+
+
+
+
+
+    <br><br><br><br>
+
+    <!-- Bootstrap core JS-->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Core theme JS-->
+    <script src="../js/scripts.js"></script>
+</body>
+
+</html>
