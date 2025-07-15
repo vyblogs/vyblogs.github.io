@@ -4,6 +4,7 @@ Disallow: /admin/
 Disallow: /private/
 Disallow: /temp/
 Disallow: /.git/
+Disallow: /.github/
 Disallow: /node_modules/
 Crawl-delay: 1
 

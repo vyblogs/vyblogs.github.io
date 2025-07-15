@@ -70,7 +70,7 @@
 
         <br>
         <h2 class="sub-section-blog">Setup</h2>
-        <p>Given a sequence of tokens [ $x_1, x_2 \ldots x_{t-1}, x_t$ ] we input the tokens $x_1$ through
+        <p>Given a sequence of tokens [ $x_1, x_2, \ldots, x_{t-1}, x_t$ ] we input the tokens $x_1$ through
             $x_{t-1}$ as the prompt and the LLM tries to predict $x_t$. During the forward pass it generates the
             final layer activations (or embeddings), which are then projected to a vocabulary-sized logits vector with
             the help of the logit projection matrix.</p>
@@ -118,7 +118,7 @@
             in the output w.r.t each element in the input.</p>
         <p>If you are working with an autograd engine like Jax or Pytorch, they generally reshape this Jacobian, or
             rather, compute it such that it can be later added to the input (like in gradient descent). Hence, in this
-            article, we will always ensure that the gradient is of the same shape as the output.</p>
+            article, we will always ensure that the gradient is of the same shape as the input.</p>
         <p>We&#39;ll deal with each term separately.</p>
 
 
@@ -153,8 +153,8 @@
         <p>$= P_k ( 1 - P_k)$</p>
         <p><strong>Case 2:</strong> $v \neq k$</p>
         <p>$\dfrac{\partial P_k}{\partial Q_v} = \dfrac{Z \cdot 0 - \exp{(Q_k)} \cdot \exp{(Q_v)}}{Z^2}$</p>
-        <p>$= \dfrac{\exp (Q_k)}{Z} \cdot {\dfrac{\exp (Q_v)}{Z}}$</p>
-        <p>$= P_k P_v$</p>
+        <p>$= - \dfrac{\exp (Q_k)}{Z} \cdot {\dfrac{\exp (Q_v)}{Z}}$</p>
+        <p>$= - P_k P_v$</p>
         <p>Neat right? You can write this in a compact form </p>
         <p>$\boxed { \dfrac{\partial P_k}{\partial Q_v} = P_k ( \delta_{kv} - P_v) }$</p>
         <p>Where $\delta_{kv}$ is 1 for $k = v$ and $0$ otherwise.</p>
@@ -162,7 +162,7 @@
 
         <br>
         <h2 class="sub-section-blog">Combining the first two terms</h2>
-        <p>You might wonder how autograd engine would deal with an $l x l$ matrix gradient for an $l$ - sized vector.
+        <p>You might wonder how autograd engine would deal with an $l \times l$ matrix gradient for an $l$ - sized vector.
             During backpropagation, frameworks only care about the gradients w.r.t the final loss $L$ . Let’s compute
             the final gradient for $\textbf{Q}$.</p>
         <p>$\dfrac{\partial L}{\partial \textbf{Q}} = \dfrac{\partial L}{\partial \textbf{P}} \cdot \dfrac{\partial
@@ -172,10 +172,11 @@
             Q_v}$ </p>
         <p>This is essentially the dot-product between the probability vector and $k^{th}$ column of the $\frac{\partial
             \textbf{P}}{\partial \textbf{Q}}$ matrix</p>
-        <p>$= \sum\limits_{k=1}^{l} \left(-\frac{G_k}{P_k}\right) \cdot \left(P_k \cdot (\delta_{kv} -
-            P_v)\right) \$
-            $= \sum\limits_{k=1}^{l} G_k \cdot P_v - \sum\limits_{k=1}^{l} G_k \cdot \delta_{kv}$
+        <p> $= \sum\limits_{k=1}^{l} \left(-\frac{G_k}{P_k}\right) \cdot \left(P_k (\delta_{kv} - P_v)\right)$
         </p>
+        <p> $= \sum\limits_{k=1}^{l} -G_k (\delta_{kv} - P_v)$ </p>
+        <p> $= \sum\limits_{k=1}^{l} (G_k P_v - G_k \delta_{kv})$</p>
+        <p> $= P_v \left(\sum\limits_{k=1}^{l} G_k\right) - G_v  \;\;\;\;\; \text{as} \; \delta_{kv} \; \text{is only non-zero when}\; k = v $</p>
         <p>$= P_v \cdot 1 - G_v \cdot 1 \;\;\;\;\;\; \text{as} \;\sum\limits_{k=1}^{l} G_k = 1$ </p>
         <p>= $(P - G)_v$</p>
         <p>In vector form, $\boxed { \dfrac{\partial L}{\partial Q} = P - G } \; \in R^l$ </p>
@@ -187,13 +188,14 @@
         <p>The third term is the simplest to calculate.</p>
         <p>$Q_v = \sum\limits_{s=1}^{h} W_{vs}g_s$</p>
         <p>⇒ $\boxed { \dfrac{\partial \textbf{Q}}{\partial \textbf{W}} = \textbf{g} }$</p>
+        <p> where the gradient for each component $Q_v$ is the vector $\textbf{g}$ </p>
         <p>The final gradient, $\dfrac{\partial L}{\partial W_{vs}}$ should be of shape $l \times h$ . Looking at its
             components,</p>
         <p>$\dfrac{\partial L}{\partial W_{vs}} = \dfrac{\partial L}{\partial Q_v} \cdot \dfrac{\partial
             Q_v}{\partial W_{vs}}$</p>
         <p>⇒ $\dfrac{\partial L}{\partial W_{vs}} = (P - G)_v \cdot g_s$</p>
-        <p>Since $v$ varies from $1$ to $l$ and $s$ varies from 1 to h, you can notice that each component of \textbf{P}
-            - \textbf{G} is multiplied with each component of \textbf{g} to result in an l \times h matrix.</p>
+        <p>Since $v$ varies from $1$ to $l$ and $s$ varies from 1 to h, you can notice that each component of $\textbf{P}
+            - \textbf{G}$ is multiplied with each component of \textbf{g} to result in an l \times h matrix.</p>
         <p>$\boxed { \dfrac{\partial L}{\partial \textbf{W}} = (\textbf{P} - \textbf{G}) \otimes \textbf{g} }$</p>
         <p>The gradient $\dfrac{\partial L}{\partial \textbf{W}} \in R_{l \times h}$ will thus simply be an outer
             product of the </p>
