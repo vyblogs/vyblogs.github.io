@@ -8,7 +8,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
     <meta name="description" content="" />
     <meta name="author" content="" />
-    <title>Varun</title>
+    <title>Blogs</title>
     <!-- Favicon-->
     <link rel="icon" type="image/x-icon" href="../assets/favicon.ico" />
     <!-- Core theme CSS (includes Bootstrap)-->
@@ -42,9 +42,11 @@
             <a class="site-title" href="/" style="font-size: 25px;">Varun Blogs</a>
 
             <nav class="site-nav">
-                <a href="#" class="menu-icon"></a>
+                <a href="#" class="menu-icon">
+                    <i class="fa-solid fa-bars"></i>
+                </a>
                 <div class="trigger">
-                    <a class="page-link" href="/about.html" style="font-size: 23px;">About</a>
+                    <a class="page-link" href="/about.html" style="font-size: 17px;">About</a>
                     <a onclick="toggleDarkMode()" class="page-link"> <i class="fa-solid fa-circle-half-stroke"
                             id="dark-toggle" style="color: black;"></i> </a>
                 </div>
@@ -177,7 +179,7 @@
         <p> $= \sum\limits_{k=1}^{l} -G_k (\delta_{kv} - P_v)$ </p>
         <p> $= \sum\limits_{k=1}^{l} (G_k P_v - G_k \delta_{kv})$</p>
         <p> $= P_v \left(\sum\limits_{k=1}^{l} G_k\right) - G_v  \;\;\;\;\; \text{as} \; \delta_{kv} \; \text{is only non-zero when}\; k = v $</p>
-        <p>$= P_v \cdot 1 - G_v \cdot 1 \;\;\;\;\;\; \text{as} \;\sum\limits_{k=1}^{l} G_k = 1$ </p>
+        <p>$= P_v \cdot 1 - G_v \;\;\;\;\;\; \text{as} \;\sum\limits_{k=1}^{l} G_k = 1$ </p>
         <p>= $(P - G)_v$</p>
         <p>In vector form, $\boxed { \dfrac{\partial L}{\partial Q} = P - G } \; \in R^l$ </p>
         <p>You can, thus see that the gradient of $L$ w.r.t $\textbf{Q}$ is of same shape as $\textbf{Q}$ . </p>
@@ -194,8 +196,8 @@
         <p>$\dfrac{\partial L}{\partial W_{vs}} = \dfrac{\partial L}{\partial Q_v} \cdot \dfrac{\partial
             Q_v}{\partial W_{vs}}$</p>
         <p>⇒ $\dfrac{\partial L}{\partial W_{vs}} = (P - G)_v \cdot g_s$</p>
-        <p>Since $v$ varies from $1$ to $l$ and $s$ varies from 1 to h, you can notice that each component of $\textbf{P}
-            - \textbf{G}$ is multiplied with each component of \textbf{g} to result in an l \times h matrix.</p>
+        <p>Since $v$ varies from $1$ to $l$ and $s$ varies from $1$ to $h$, you can notice that each component of $\textbf{P}
+            - \textbf{G}$ is multiplied with each component of $\textbf{g}$ to result in an $l \times h$ matrix.</p>
         <p>$\boxed { \dfrac{\partial L}{\partial \textbf{W}} = (\textbf{P} - \textbf{G}) \otimes \textbf{g} }$</p>
         <p>The gradient $\dfrac{\partial L}{\partial \textbf{W}} \in R_{l \times h}$ will thus simply be an outer
             product of the </p>

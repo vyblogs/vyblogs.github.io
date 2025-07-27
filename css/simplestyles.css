@@ -365,6 +365,16 @@ body .gist .gist-meta {
         text-align: right
     }
 
+    body.dark-mode .site-nav {
+        position:absolute;
+        top: 9px;
+        right: 30px;
+        background-color: #363535;
+        border: 1px solid #0b0b0b;
+        border-radius: 5px;
+        text-align: right
+    }
+
     .site-nav .menu-icon {
         display: block;
         float: right;
